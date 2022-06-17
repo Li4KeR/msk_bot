@@ -61,7 +61,7 @@ async def start(message: types.Message):
     await message.answer(text="Вас приветствует Московская клиника!\nВыберите тему обращения:", reply_markup=keyboards.main)
 
 @dp.callback_query_handler(lambda call: "main" in call.data)
-async def next_keyboard(call):
+async def next_keyboard(call: types.CallbackQuery):
     await call.message.edit_text(text="Вас приветствует Московская клиника!\nВыберите тему обращения:")
     await call.message.edit_reply_markup(reply_markup=keyboards.main)
     await call.answer()
@@ -89,20 +89,20 @@ async def start(message: types.Message):
 #        await message.delete()
 
 #"""переход в главное меню через n сек"""
-async def back_to_main(call, sleep_time: int = 0):
+async def back_to_main(call: types.CallbackQuery, sleep_time: int = 0):
     await asyncio.sleep(sleep_time)
     await call.message.edit_text(text="Вас приветствует Московская клиника!\nВыберите тему обращения:")
     await call.message.edit_reply_markup(reply_markup=keyboards.main)
 
 """сброс fsm state call"""
-async def reset_fsm_call(call, state):
+async def reset_fsm_call(call: types.CallbackQuery, state: FSMContext):
     await asyncio.sleep(600)
     await call.message.edit_text(text="Вас приветствует Московская клиника!\nВыберите тему обращения:")
     await call.message.edit_reply_markup(reply_markup=keyboards.main)
     await state.finish()
 
 """сброс fsm state msg"""
-async def reset_fsm_msg(message, state):
+async def reset_fsm_msg(message: types.Message, state: FSMContext):
     await asyncio.sleep(600)
     await message.delete()
     await message.edit_text(text="Вас приветствует Московская клиника!\nВыберите тему обращения:")
@@ -111,9 +111,36 @@ async def reset_fsm_msg(message, state):
 
 """меню оператор"""
 @dp.callback_query_handler(lambda call: "operator" in call.data)
-async def next_keyboard(call):
+async def next_keyboard(call: types.CallbackQuery):
     await call.message.edit_text(text="Связь с оператором")
     await call.message.edit_reply_markup(reply_markup=keyboards.operator)
+    await call.answer()
+
+"""меню мои записи"""
+@dp.callback_query_handler(lambda call: "menu_mythreat" in call.data)
+async def next_keyboard(call: types.CallbackQuery):
+    id_user = call.from_user.id
+    data = logic.all_treat_pac(id_user)
+    menu = types.InlineKeyboardMarkup(row_width=2)
+    if len(data) == 0:
+        await call.message.edit_text(text="У Вас нет активных записей")
+        menu.add(InlineKeyboardButton(text="Главное меню", callback_data="main"))
+        await call.message.edit_reply_markup(reply_markup=menu)
+    else:
+        await call.message.edit_text(text="Ваши активные записи:")
+        menu.add(*[InlineKeyboardButton(button[1], callback_data=f"custom_threat_{button[0]}") for button in data])
+        menu.add(InlineKeyboardButton(text="Главное меню", callback_data="main"))
+        await call.message.edit_reply_markup(reply_markup=menu)
+    await call.answer()
+
+@dp.callback_query_handler(Text(startswith="custom_threat_"))
+async def callbacks_num(call: types.CallbackQuery):
+    id_treat = call.data.split("_")[2]
+    doc, tr_date, spek = logic.custom_treat(id_treat)
+    menu = types.InlineKeyboardMarkup(row_width=2)
+    menu.add(InlineKeyboardButton(text="Главное меню", callback_data="main"))
+    await call.message.edit_text(text=f"Вы записаны к доктору\n{doc}\n{spek}\nПрием: {tr_date}")
+    await call.message.edit_reply_markup(reply_markup=menu)
     await call.answer()
 
 """меню лечение"""

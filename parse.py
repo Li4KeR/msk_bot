@@ -11,7 +11,7 @@ from aiogram.types import InlineKeyboardButton
 
 """парсинг направлений"""
 def parse_speki():
-    speki = requests.get(f'{url_clinic}/api/reservation/departments?f=1&_=1647183688868')
+    speki = requests.get(f'{url_clinic}/api/reservation/departments')
     json_data = json.loads(speki.text)
     specializacii = json_data['data']
     return specializacii
