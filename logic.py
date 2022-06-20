@@ -2,7 +2,10 @@ import sqlite3
 from datetime import datetime
 from config import DataBase, log_path
 
-
+import smtplib, ssl
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+import config
 
 """Работа с бд"""
 def ins_sql(pacid, fio, phone, doc, dtime, comm, spek, date_cr, accepted):
@@ -106,3 +109,33 @@ def custom_treat(id_treat):
         error_text = "Ошибка при работе с SQLite ", error
         f = open(log_path,'w')
         f.write(str(error_text))
+
+def send_mail(fio, phone, doc, comm, dtime):
+    subject = config.subject
+    sender_email = config.sender_email
+    receiver_email = config.receiver_email
+    password = config.password
+    body = f"""Записался пациент через телеграм-бота:\n
+                ФИО: {fio},\n
+                Телефон: {phone}\n
+                К кому: {doc}\n
+                Коментарий: {comm}\n
+                Время приема: {dtime}
+                """
+
+    #send_mail
+    message = MIMEMultipart()
+    message["From"] = sender_email
+    message["To"] = receiver_email
+    message["Subject"] = subject
+    message["Bcc"] = receiver_email
+
+    message.attach(MIMEText(body, "plain"))
+
+    text = message.as_string()
+
+    context = ssl.create_default_context()
+    with smtplib.SMTP_SSL(config.host_mail, config.host_port, context=context) as server:
+        server.login(sender_email, password)
+        server.sendmail(sender_email, receiver_email, text)
+    

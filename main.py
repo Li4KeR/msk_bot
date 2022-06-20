@@ -339,6 +339,7 @@ async def enter_comm(message: types.Message, state: FSMContext):
         menu = types.InlineKeyboardMarkup(row_width=1)
         menu.add(InlineKeyboardButton(text="Главное меню", callback_data="main"))
         await message.answer(text=f"Вы записались к врачу: {doc}\nНаправление: {spek}\nДата и время: {dtime}\nДля подтверждения записи оператор свяжется с Вами в ближайшее время, спасибо за обращение!", reply_markup=menu)
+        logic.send_mail(fio, phone, doc, comm, dtime)
 
 """ФСМ лечение и восстановление"""
 """ловим стейт коментов, пишем дату, передаем в кц и возвращаем юзеру"""
@@ -391,6 +392,7 @@ async def print_anketa(message: types.Message, state: FSMContext):
     menu = types.InlineKeyboardMarkup(row_width=1)
     menu.add(InlineKeyboardButton(text="Главное меню", callback_data="main"))
     await message.answer(text=f"Вы записались к врачу: {doc}\nНаправление: {spek}\nДата: {dtime}\nДля подтверждения записи оператор свяжется с Вами в ближайшее время, спасибо за обращение!", reply_markup=menu)
+    logic.send_mail(fio, phone, doc, comm, dtime)
 
 """Подтверждение пациента для БД КЦ"""
 @dp.callback_query_handler(Text(startswith="accepted_"))
