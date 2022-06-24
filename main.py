@@ -48,12 +48,6 @@ class anketa(StatesGroup):
     date_tr = State()           #дата приема
     comment = State()           #комент
     naprav = State()            #направление
-    #fin = State()               #fin
-
-#"""тестовая обработка любого слова"""
-#@dp.message_handler()
-#async def echo_message(message: types.Message):
-#    await message.answer(text="Вас приветствует Московская клиника!\nВыберите тему обращения:", reply_markup=keyboards.main)
 
 """Стартовое меню"""
 @dp.message_handler(commands="start")
@@ -82,13 +76,7 @@ async def start(message: types.Message):
     menu.add(InlineKeyboardButton(text="Главное меню", callback_data="main"))
     await message.answer(text="Ваш id: " + str(message.from_user.id), reply_markup=menu)
 
-#"""удалить сообщение через n сек"""
-#async def delete_message(message: types.Message, sleep_time):
-#    await asyncio.sleep(sleep_time)
-#    with suppress(MessageCantBeDeleted, MessageToDeleteNotFound):
-#        await message.delete()
-
-#"""переход в главное меню через n сек"""
+"""переход в главное меню через n сек"""
 async def back_to_main(call: types.CallbackQuery, sleep_time: int = 0):
     await asyncio.sleep(sleep_time)
     await call.message.edit_text(text="Вас приветствует Московская клиника!\nВыберите тему обращения:")
@@ -133,6 +121,7 @@ async def next_keyboard(call: types.CallbackQuery):
         await call.message.edit_reply_markup(reply_markup=menu)
     await call.answer()
 
+"""показ информации пациенту о своей записи"""
 @dp.callback_query_handler(Text(startswith="custom_threat_"))
 async def callbacks_num(call: types.CallbackQuery):
     id_treat = call.data.split("_")[2]
